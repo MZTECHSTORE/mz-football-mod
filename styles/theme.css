@@ -1,0 +1,51 @@
+/* CORES PRINCIPAIS */
+
+:root{
+
+ --bg-main:#0b0b0b;
+
+ --card-bg:#111111;
+
+ --border:#1f1f1f;
+
+ --green:#22c55e;
+
+ --yellow:#eab308;
+
+ --red:#ef4444;
+
+}
+
+/* CARD PADRÃO */
+
+.card{
+
+ background:var(--card-bg);
+
+ border:1px solid var(--border);
+
+ border-radius:12px;
+
+ padding:20px;
+
+}
+
+/* BOTÃO PRINCIPAL */
+
+.btn-primary{
+
+ background:var(--green);
+
+ padding:10px 20px;
+
+ border-radius:8px;
+
+ font-weight:bold;
+
+}
+
+.btn-primary:hover{
+
+ opacity:0.9;
+
+}
