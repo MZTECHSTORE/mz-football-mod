@@ -1,11 +1,39 @@
 async function loadMatches(){
 
-const url = "https://api.sportmonks.com/v3/football/livescores/inplay?api_token=SEU_TOKEN&include=participants;scores;periods;events;league.country;round"
+const container = document.getElementById("matches")
 
-const res = await fetch(url)
+container.innerHTML="Loading matches..."
 
-const data = await res.json()
+const matches = await getLiveMatches()
 
-console.log(data)
+container.innerHTML=""
+
+matches.forEach(match=>{
+
+const home = match.participants.find(p=>p.meta.location==="home").name
+
+const away = match.participants.find(p=>p.meta.location==="away").name
+
+const league = match.league.name
+
+const prediction = predictMatch()
+
+const card = document.createElement("div")
+
+card.className="card"
+
+card.innerHTML=`
+
+<div class="league">${league}</div>
+
+<div class="match">${home} vs ${away}</div>
+
+<div class="prediction">Prediction: ${prediction}</div>
+
+`
+
+container.appendChild(card)
+
+})
 
 }
