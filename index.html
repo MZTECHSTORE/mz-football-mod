@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MZ Football - API-Futebol</title>
+  <title>MZ Football AI Predictor | API-Futebol</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
       --bg-dark: #0f172a;
@@ -14,87 +15,38 @@
       --border: rgba(255, 255, 255, 0.1);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg-dark); color: var(--text-main); padding: 1rem; }
-    .container { max-width: 700px; margin: 0 auto; }
+    body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg-dark); color: var(--text-main); padding: 1rem; line-height: 1.5; }
+    .container { max-width: 800px; margin: 0 auto; }
     header { text-align: center; margin-bottom: 1.5rem; }
-    h1 { color: var(--primary); font-size: 1.5rem; margin-bottom: 0.5rem; }
+    h1 { color: var(--primary); font-size: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
     
-    .status-box { background: var(--card-bg); border: 1px solid var(--border); padding: 1rem; border-radius: 10px; text-align: center; color: var(--text-muted); margin-bottom: 1rem; }
+    .widget-container { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; overflow: hidden; }
     
-    .champ-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
-    .champ-logo { width: 45px; height: 45px; object-fit: contain; background: #0f172a; padding: 4px; border-radius: 6px; }
-    .champ-info h3 { font-size: 1.05rem; color: var(--text-main); margin-bottom: 0.2rem; }
-    .champ-info p { font-size: 0.85rem; color: var(--text-muted); }
+    footer { text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 2rem; }
   </style>
 </head>
 <body>
 
   <div class="container">
     <header>
-      <h1>⚽ MZ Football - Campeonatos</h1>
+      <h1><i class="fas fa-futbol"></i> MZ Football AI Predictor</h1>
     </header>
 
-    <div id="statusMessage" class="status-box">A carregar dados da API-Futebol...</div>
-    <div id="app"></div>
+    <!-- Widget Oficial da API-Futebol -->
+    <div class="widget-container">
+      <div class="af-widget" data-af-widget="wgt_e9bd176bd9d1c7cf379c00a756419120" data-af-height="420">
+        <a href="https://api-futebol.com.br/?utm_source=widget&amp;utm_medium=embed&amp;utm_campaign=wgt_e9bd" target="_blank" style="color: var(--text-muted); text-decoration: none;">
+          Rodadas · Dados por API Futebol
+        </a>
+      </div>
+    </div>
   </div>
 
-  <script>
-    async function carregarCampeonatos() {
-      const statusEl = document.getElementById('statusMessage');
-      const app = document.getElementById('app');
-      
-      const url = "https://api.api-futebol.com.br/v1/campeonatos";
+  <footer>
+    <p>© 2026 MZ Football AI Predictor — Inteligência Artificial Aplicada ao Futebol.</p>
+  </footer>
 
-      try {
-        const response = await fetch(url, {
-          headers: {
-            Authorization: "Bearer live_17e37542f47c246dcd1dca691bcb54",
-            Accept: "application/json"
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        statusEl.style.display = 'none';
-
-        // Suporta diferentes formatos de resposta da API
-        const campeonatos = Array.isArray(data) ? data : (data.campeonatos || data.data || []);
-
-        if (campeonatos.length === 0) {
-          app.innerHTML = `<div class="status-box">Nenhum campeonato encontrado.</div>`;
-          return;
-        }
-
-        campeonatos.forEach(c => {
-          const nome = c.nome || c.name || "Campeonato";
-          const logo = c.logo || c.logotipo || "";
-          const formato = c.formato || "N/D";
-          const status = c.status || "Ativo";
-
-          app.innerHTML += `
-            <div class="champ-card">
-              ${logo ? `<img src="${logo}" class="champ-logo" alt="${nome}">` : '<i class="fas fa-trophy fa-2x" style="color: #10b981; min-width:45px; text-align:center;"></i>'}
-              <div class="champ-info">
-                <h3>${nome}</h3>
-                <p>Formato: ${formato} | Estado: ${status}</p>
-              </div>
-            </div>
-          `;
-        });
-
-      } catch (error) {
-        statusEl.style.background = '#7f1d1d';
-        statusEl.style.borderColor = '#f87171';
-        statusEl.style.color = '#fecaca';
-        statusEl.innerHTML = `<strong>Erro de Ligação:</strong> ${error.message}<br><br><small>Nota: Se o erro persistir, verifique se o seu plano na API-Futebol permite requisições diretas a partir de aplicações frontend (CORS).</small>`;
-        console.error(error);
-      }
-    }
-
-    carregarCampeonatos();
-  </script>
+  <!-- Script Oficial do Widget da API-Futebol -->
+  <script src="https://cdn.api-futebol.com.br/widgets/v3.js" async></script>
 </body>
 </html>
