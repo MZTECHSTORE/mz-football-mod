@@ -3,103 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MZ Football AI Predictor</title>
+  <title>MZ Football - Campeonatos</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; background-color: #0f172a; color: #fff; margin: 0; padding: 1rem; }
-    .container { max-width: 800px; margin: 0 auto; }
-    h1 { color: #10b981; font-size: 1.5rem; text-align: center; margin-bottom: 1.5rem; }
-    .error-box { background: #7f1d1d; border: 1px solid #f87171; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; color: #fecaca; }
-    .card { background: #1e293b; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #334155; }
-    .card-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.5rem; }
-    .teams { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1.1rem; margin-bottom: 1rem; }
-    .score { background: #0f172a; padding: 0.4rem 0.8rem; border-radius: 6px; color: #10b981; font-family: monospace; }
-    .ai-box { background: #0f172a; padding: 0.8rem; border-radius: 8px; font-size: 0.85rem; }
-    .ai-title { color: #10b981; font-weight: bold; margin-bottom: 0.4rem; }
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --primary: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg-dark); color: var(--text-main); padding: 1rem; }
+    .container { max-width: 700px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 1.5rem; }
+    h1 { color: var(--primary); font-size: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    
+    .status-box { background: var(--card-bg); border: 1px solid var(--border); padding: 1rem; border-radius: 10px; text-align: center; color: var(--text-muted); margin-bottom: 1rem; }
+    
+    .champ-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
+    .champ-logo { width: 40px; height: 40px; object-fit: contain; }
+    .champ-info h3 { font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.2rem; }
+    .champ-info p { font-size: 0.85rem; color: var(--text-muted); }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>⚽ MZ Football AI Predictor</h1>
-    <div id="statusMessage">A carregar dados...</div>
-    <div id="content"></div>
+    <header>
+      <h1><i class="fas fa-trophy"></i> MZ Football - Campeonatos</h1>
+    </header>
+
+    <div id="statusMessage" class="status-box">A carregar campeonatos da API-Futebol...</div>
+    <div id="champsContainer"></div>
   </div>
 
   <script>
-    const CONFIG = {
-      API_URL: 'https://api.sportmonks.com/v3/football',
-      API_TOKEN: '71ea7372afb35e01d4e61503a4cb256b0f5e96394ec3626065aa0f05aca6f0de'
-    };
+    const API_TOKEN = 'live_17e37542f47c246dcd1dca691bcb54';
+    const API_URL = 'https://api.api-futebol.com.br/v1/campeonatos';
 
-    async function initApp() {
+    async function fetchCampeonatos() {
       const statusEl = document.getElementById('statusMessage');
-      const contentEl = document.getElementById('content');
+      const containerEl = document.getElementById('champsContainer');
 
       try {
-        statusEl.innerText = "A contactar a API SportMonks...";
-        
-        // Pedido de teste em direto aos jogos ao vivo
-        const url = `${CONFIG.API_URL}/livescores/inplay?api_token=${CONFIG.API_TOKEN}&include=participants;scores;league`;
-        const res = await fetch(url);
+        // A API-Futebol requer o cabeçalho Authorization com Bearer token
+        const response = await fetch(API_URL, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${API_TOKEN}`,
+            'Accept': 'application/json'
+          }
+        });
 
-        if (!res.ok) {
-          throw new Error(`Erro HTTP: ${res.status} - ${res.statusText}`);
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
         }
 
-        const data = await res.json();
+        const data = await response.json();
         statusEl.style.display = 'none';
 
-        if (!data || !data.data || data.data.length === 0) {
-          contentEl.innerHTML = `
-            <div class="card" style="text-align: center; color: #94a3b8;">
-              <p>Nenhum jogo ao vivo encontrado na API neste momento.</p>
-              <small>A API respondeu com sucesso, mas não existem partidas a decorrer agora.</small>
-            </div>`;
+        // Adaptação para diferentes estruturas de retorno da API
+        const campeonatos = Array.isArray(data) ? data : (data.campeonatos || data.data || []);
+
+        if (campeonatos.length === 0) {
+          containerEl.innerHTML = `<div class="status-box">Nenhum campeonato encontrado na resposta da API.</div>`;
           return;
         }
 
-        data.data.forEach(match => {
-          const home = match.participants?.[0]?.name || "Casa";
-          const away = match.participants?.[1]?.name || "Fora";
-          const league = match.league?.name || "Liga";
-          const homeScore = match.scores?.find(s => s.description === 'CURRENT')?.score?.goals ?? '0';
-          const awayScore = match.scores?.find(s => s.description === 'CURRENT')?.score?.goals ?? '0';
+        campeonatos.forEach(champ => {
+          const nome = champ.nome || champ.name || "Campeonato Oficial";
+          const logo = champ.logo || champ.logotipo || "";
+          const formato = champ.formato || "N/D";
+          const status = champ.status || "Ativo";
 
-          contentEl.innerHTML += `
-            <div class="card">
-              <div class="card-header">
-                <span>🏆 ${league}</span>
-                <span style="color: #ef4444;">🔴 AO VIVO</span>
-              </div>
-              <div class="teams">
-                <span>${home}</span>
-                <span class="score">${homeScore} - ${awayScore}</span>
-                <span>${away}</span>
-              </div>
-              <div class="ai-box">
-                <div class="ai-title">🤖 Previsão da IA</div>
-                <div>Vencedor Provável: <strong>${homeScore > awayScore ? home : away}</strong></div>
-                <div>Golos Esperados: <strong>${Number(homeScore) + Number(awayScore) >= 2 ? 'Mais de 2.5' : 'Menos de 2.5'}</strong></div>
+          containerEl.innerHTML += `
+            <div class="champ-card">
+              ${logo ? `<img src="${logo}" class="champ-logo" alt="${nome}">` : '<i class="fas fa-shield-alt fa-2x" style="color: #10b981;"></i>'}
+              <div class="champ-info">
+                <h3>${nome}</h3>
+                <p>Formato: ${formato} | Estado: ${status}</p>
               </div>
             </div>
           `;
         });
 
-      } catch (err) {
-        statusEl.style.display = 'none';
-        // Mostra o erro exato no ecrã em vez de ficar em branco
-        contentEl.innerHTML = `
-          <div class="error-box">
-            <strong><i class="fas fa-exclamation-triangle"></i> Erro Detetado:</strong>
-            <p>${err.message}</p>
-            <hr style="border-color: rgba(255,255,255,0.2); margin: 0.5rem 0;">
-            <small>Isto acontece frequentemente devido a restrições de segurança do navegador (CORS) ao contactar diretamente a API no cliente, ou falha de ligação.</small>
-          </div>`;
+      } catch (error) {
+        statusEl.style.background = '#7f1d1d';
+        statusEl.style.borderColor = '#f87171';
+        statusEl.style.color = '#fecaca';
+        statusEl.innerText = `Erro de Ligação: ${error.message}. Certifique-se de que a chave suporta este endpoint ou verifique restrições de CORS.`;
       }
     }
 
-    initApp();
+    fetchCampeonatos();
   </script>
 </body>
 </html>
