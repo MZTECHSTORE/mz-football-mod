@@ -1,75 +1,18 @@
-<!DOCTYPE html>
-<html lang="pt">
+<section class="controls-panel">
+  <div class="search-box">
+    <i class="fas fa-search"></i>
+    <input type="text" id="searchInput" placeholder="Pesquisar equipa ou liga..." onkeyup="filterMatches()">
+  </div>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MZ Football AI Predictor | Previsões Inteligentes de Futebol</title>
-
-  <!-- Google Fonts & Font Awesome Icons -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-
-  <!-- Cabeçalho / Navbar -->
-  <header>
-    <div class="logo">
-      <i class="fas fa-brain-circuit"></i>
-      <h1>MZ Football <span>AI</span></h1>
-    </div>
-
-    <div class="header-actions">
-      <button id="btnLoadMatches" onclick="loadMatches()" class="btn-primary">
-        <i class="fas fa-rotate"></i> Carregar Jogos em Tempo Real
-      </button>
-    </div>
-  </header>
-
-  <!-- Container Principal -->
-  <main class="container">
-
-    <!-- Painel de Filtros e Pesquisa -->
-    <section class="controls-panel">
-      <div class="search-box">
-        <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="Pesquisar equipa ou liga..." onkeyup="filterMatches()">
-      </div>
-
-      <div class="filter-buttons">
-        <button class="filter-btn active" onclick="filterByStatus('all')">Todos</button>
-        <button class="filter-btn" onclick="filterByStatus('live')"><i class="fas fa-circle live-dot"></i> Ao Vivo</button>
-        <button class="filter-btn" onclick="filterByStatus('upcoming')">Próximos</button>
-      </div>
-    </section>
-
-    <!-- Indicador de Carregamento (Loading Spinner) -->
-    <div id="loadingSpinner" class="spinner-container" style="display: none;">
-      <div class="spinner"></div>
-      <p>A analisar estatísticas e gerar previsões com IA...</p>
-    </div>
-
-    <!-- Grelha de Jogos e Previsões -->
-    <section id="matches" class="grid"></section>
-
-  </main>
-
-  <!-- Rodapé -->
-  <footer>
-    <p>© 2026 <strong>MZ Football AI Predictor</strong> — Inteligência Artificial Aplicada ao Futebol.</p>
-  </footer>
-
-  <!-- Scripts do Projeto -->
-  <script src="config.js"></script>
-  <script src="api.js"></script>
-  <script src="predictor.js"></script>
-  <script src="app.js"></script>
-
-</body>
-
-</html>
+  <div class="filter-buttons">
+    <button id="btn-live" class="filter-btn active" onclick="loadMatches('live')">
+      <i class="fas fa-circle live-dot"></i> Ao Vivo
+    </button>
+    <button id="btn-week" class="filter-btn" onclick="loadMatches('week')">
+      <i class="fas fa-calendar-week"></i> Esta Semana
+    </button>
+    <button id="btn-month" class="filter-btn" onclick="loadMatches('month')">
+      <i class="fas fa-calendar-alt"></i> Este Mês
+    </button>
+  </div>
+</section>
