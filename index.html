@@ -3,80 +3,103 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MZ Football AI Predictor | Dados Reais de Futebol</title>
-
-  <!-- Google Fonts & Font Awesome Icons -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <title>MZ Football AI Predictor</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <style>
-    :root {
-      --bg-dark: #0f172a;
-      --card-bg: #1e293b;
-      --card-inner: #0f172a;
-      --primary: #10b981;
-      --accent: #f59e0b;
-      --danger: #ef4444;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --border-color: rgba(255, 255, 255, 0.1);
-      --radius: 12px;
+    body { font-family: system-ui, -apple-system, sans-serif; background-color: #0f172a; color: #fff; margin: 0; padding: 1rem; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { color: #10b981; font-size: 1.5rem; text-align: center; margin-bottom: 1.5rem; }
+    .error-box { background: #7f1d1d; border: 1px solid #f87171; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; color: #fecaca; }
+    .card { background: #1e293b; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #334155; }
+    .card-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.5rem; }
+    .teams { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1.1rem; margin-bottom: 1rem; }
+    .score { background: #0f172a; padding: 0.4rem 0.8rem; border-radius: 6px; color: #10b981; font-family: monospace; }
+    .ai-box { background: #0f172a; padding: 0.8rem; border-radius: 8px; font-size: 0.85rem; }
+    .ai-title { color: #10b981; font-weight: bold; margin-bottom: 0.4rem; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>⚽ MZ Football AI Predictor</h1>
+    <div id="statusMessage">A carregar dados...</div>
+    <div id="content"></div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      API_URL: 'https://api.sportmonks.com/v3/football',
+      API_TOKEN: '71ea7372afb35e01d4e61503a4cb256b0f5e96394ec3626065aa0f05aca6f0de'
+    };
+
+    async function initApp() {
+      const statusEl = document.getElementById('statusMessage');
+      const contentEl = document.getElementById('content');
+
+      try {
+        statusEl.innerText = "A contactar a API SportMonks...";
+        
+        // Pedido de teste em direto aos jogos ao vivo
+        const url = `${CONFIG.API_URL}/livescores/inplay?api_token=${CONFIG.API_TOKEN}&include=participants;scores;league`;
+        const res = await fetch(url);
+
+        if (!res.ok) {
+          throw new Error(`Erro HTTP: ${res.status} - ${res.statusText}`);
+        }
+
+        const data = await res.json();
+        statusEl.style.display = 'none';
+
+        if (!data || !data.data || data.data.length === 0) {
+          contentEl.innerHTML = `
+            <div class="card" style="text-align: center; color: #94a3b8;">
+              <p>Nenhum jogo ao vivo encontrado na API neste momento.</p>
+              <small>A API respondeu com sucesso, mas não existem partidas a decorrer agora.</small>
+            </div>`;
+          return;
+        }
+
+        data.data.forEach(match => {
+          const home = match.participants?.[0]?.name || "Casa";
+          const away = match.participants?.[1]?.name || "Fora";
+          const league = match.league?.name || "Liga";
+          const homeScore = match.scores?.find(s => s.description === 'CURRENT')?.score?.goals ?? '0';
+          const awayScore = match.scores?.find(s => s.description === 'CURRENT')?.score?.goals ?? '0';
+
+          contentEl.innerHTML += `
+            <div class="card">
+              <div class="card-header">
+                <span>🏆 ${league}</span>
+                <span style="color: #ef4444;">🔴 AO VIVO</span>
+              </div>
+              <div class="teams">
+                <span>${home}</span>
+                <span class="score">${homeScore} - ${awayScore}</span>
+                <span>${away}</span>
+              </div>
+              <div class="ai-box">
+                <div class="ai-title">🤖 Previsão da IA</div>
+                <div>Vencedor Provável: <strong>${homeScore > awayScore ? home : away}</strong></div>
+                <div>Golos Esperados: <strong>${Number(homeScore) + Number(awayScore) >= 2 ? 'Mais de 2.5' : 'Menos de 2.5'}</strong></div>
+              </div>
+            </div>
+          `;
+        });
+
+      } catch (err) {
+        statusEl.style.display = 'none';
+        // Mostra o erro exato no ecrã em vez de ficar em branco
+        contentEl.innerHTML = `
+          <div class="error-box">
+            <strong><i class="fas fa-exclamation-triangle"></i> Erro Detetado:</strong>
+            <p>${err.message}</p>
+            <hr style="border-color: rgba(255,255,255,0.2); margin: 0.5rem 0;">
+            <small>Isto acontece frequentemente devido a restrições de segurança do navegador (CORS) ao contactar diretamente a API no cliente, ou falha de ligação.</small>
+          </div>`;
+      }
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-dark); color: var(--text-main); line-height: 1.5; padding-bottom: 3rem; }
-
-    .container { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
-
-    /* Header */
-    header { background: #1e293b; border-bottom: 1px solid var(--border-color); padding: 1.2rem 0; margin-bottom: 1.5rem; }
-    .header-content { display: flex; justify-content: space-between; align-items: center; }
-    .logo { display: flex; align-items: center; gap: 0.6rem; font-size: 1.4rem; font-weight: 800; color: var(--text-main); }
-    .logo i { color: var(--primary); }
-    .logo span { color: var(--primary); }
-
-    /* Controls */
-    .controls-panel { background: var(--card-bg); border-radius: var(--radius); padding: 1rem; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
-    .search-box { display: flex; align-items: center; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 1rem; margin-bottom: 1rem; }
-    .search-box i { color: var(--text-muted); margin-right: 0.8rem; }
-    .search-box input { background: transparent; border: none; color: #fff; width: 100%; font-size: 0.95rem; outline: none; }
-
-    .filter-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .filter-btn { flex: 1; min-width: 80px; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-dark); color: var(--text-muted); font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; font-size: 0.85rem; }
-    .filter-btn:hover, .filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-
-    /* Loading Spinner */
-    .spinner-container { text-align: center; padding: 3rem; color: var(--text-muted); }
-    .spinner { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-    /* Match Card */
-    .match-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1.2rem; }
-    .match-header { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem; }
-    .match-header .league { font-weight: 700; color: var(--accent); }
-
-    .match-teams-score { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 1.2rem; }
-    .team-box { flex: 1; display: flex; align-items: center; gap: 0.5rem; }
-    .team-box.away { justify-content: flex-end; text-align: right; }
-    .team-name { font-size: 1rem; font-weight: 700; color: #fff; }
-    .team-logo { width: 28px; height: 28px; object-fit: contain; }
-    .score-badge { background: var(--bg-dark); padding: 0.5rem 1rem; border-radius: 8px; font-family: monospace; font-size: 1.1rem; font-weight: 800; color: var(--primary); border: 1px solid var(--border-color); min-width: 60px; text-align: center; }
-
-    /* AI Prediction Panel */
-    .ai-panel { background: var(--bg-dark); border-radius: 10px; padding: 1rem; border: 1px solid rgba(255,255,255,0.05); }
-    .ai-title { color: var(--primary); font-size: 0.88rem; font-weight: 700; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
-    
-    .pred-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.6rem; margin-bottom: 0.8rem; }
-    .pred-box { background: var(--card-bg); padding: 0.6rem; border-radius: 6px; text-align: center; border: 1px solid var(--border-color); }
-    .pred-box small { display: block; font-size: 0.7rem; color: var(--text-muted); }
-    .pred-box strong { font-size: 0.88rem; color: #fff; }
-    .pred-box.highlight strong { color: var(--primary); font-size: 1.05rem; }
-
-    /* Probability Bar */
-    .prob-bar-container { margin-top: 0.6rem; }
-    .prob-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.2rem; }
-    .prob-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: #334155; }
-    .bar-home { background: var(--primary); }
-    .
+    initApp();
+  </script>
+</body>
+</html>
