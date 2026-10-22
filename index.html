@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MZ Football - Campeonatos</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>MZ Football - API-Futebol</title>
   <style>
     :root {
       --bg-dark: #0f172a;
@@ -18,13 +17,13 @@
     body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg-dark); color: var(--text-main); padding: 1rem; }
     .container { max-width: 700px; margin: 0 auto; }
     header { text-align: center; margin-bottom: 1.5rem; }
-    h1 { color: var(--primary); font-size: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    h1 { color: var(--primary); font-size: 1.5rem; margin-bottom: 0.5rem; }
     
     .status-box { background: var(--card-bg); border: 1px solid var(--border); padding: 1rem; border-radius: 10px; text-align: center; color: var(--text-muted); margin-bottom: 1rem; }
     
-    .champ-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
-    .champ-logo { width: 40px; height: 40px; object-fit: contain; }
-    .champ-info h3 { font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.2rem; }
+    .champ-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
+    .champ-logo { width: 45px; height: 45px; object-fit: contain; background: #0f172a; padding: 4px; border-radius: 6px; }
+    .champ-info h3 { font-size: 1.05rem; color: var(--text-main); margin-bottom: 0.2rem; }
     .champ-info p { font-size: 0.85rem; color: var(--text-muted); }
   </style>
 </head>
@@ -32,29 +31,26 @@
 
   <div class="container">
     <header>
-      <h1><i class="fas fa-trophy"></i> MZ Football - Campeonatos</h1>
+      <h1>⚽ MZ Football - Campeonatos</h1>
     </header>
 
-    <div id="statusMessage" class="status-box">A carregar campeonatos da API-Futebol...</div>
-    <div id="champsContainer"></div>
+    <div id="statusMessage" class="status-box">A carregar dados da API-Futebol...</div>
+    <div id="app"></div>
   </div>
 
   <script>
-    const API_TOKEN = 'live_17e37542f47c246dcd1dca691bcb54';
-    const API_URL = 'https://api.api-futebol.com.br/v1/campeonatos';
-
-    async function fetchCampeonatos() {
+    async function carregarCampeonatos() {
       const statusEl = document.getElementById('statusMessage');
-      const containerEl = document.getElementById('champsContainer');
+      const app = document.getElementById('app');
+      
+      const url = "https://api.api-futebol.com.br/v1/campeonatos";
 
       try {
-        // A API-Futebol requer o cabeçalho Authorization com Bearer token
-        const response = await fetch(API_URL, {
-          method: 'GET',
+        const response = await fetch(url, {
           headers: {
-            'Authorization': `Bearer ${API_TOKEN}`,
-            'Accept': 'application/json'
-          }
+            Authorization: "Bearer live_17e37542f47c246dcd1dca691bcb54",
+            Accept: "application/json"
+          },
         });
 
         if (!response.ok) {
@@ -64,23 +60,23 @@
         const data = await response.json();
         statusEl.style.display = 'none';
 
-        // Adaptação para diferentes estruturas de retorno da API
+        // Suporta diferentes formatos de resposta da API
         const campeonatos = Array.isArray(data) ? data : (data.campeonatos || data.data || []);
 
         if (campeonatos.length === 0) {
-          containerEl.innerHTML = `<div class="status-box">Nenhum campeonato encontrado na resposta da API.</div>`;
+          app.innerHTML = `<div class="status-box">Nenhum campeonato encontrado.</div>`;
           return;
         }
 
-        campeonatos.forEach(champ => {
-          const nome = champ.nome || champ.name || "Campeonato Oficial";
-          const logo = champ.logo || champ.logotipo || "";
-          const formato = champ.formato || "N/D";
-          const status = champ.status || "Ativo";
+        campeonatos.forEach(c => {
+          const nome = c.nome || c.name || "Campeonato";
+          const logo = c.logo || c.logotipo || "";
+          const formato = c.formato || "N/D";
+          const status = c.status || "Ativo";
 
-          containerEl.innerHTML += `
+          app.innerHTML += `
             <div class="champ-card">
-              ${logo ? `<img src="${logo}" class="champ-logo" alt="${nome}">` : '<i class="fas fa-shield-alt fa-2x" style="color: #10b981;"></i>'}
+              ${logo ? `<img src="${logo}" class="champ-logo" alt="${nome}">` : '<i class="fas fa-trophy fa-2x" style="color: #10b981; min-width:45px; text-align:center;"></i>'}
               <div class="champ-info">
                 <h3>${nome}</h3>
                 <p>Formato: ${formato} | Estado: ${status}</p>
@@ -93,11 +89,12 @@
         statusEl.style.background = '#7f1d1d';
         statusEl.style.borderColor = '#f87171';
         statusEl.style.color = '#fecaca';
-        statusEl.innerText = `Erro de Ligação: ${error.message}. Certifique-se de que a chave suporta este endpoint ou verifique restrições de CORS.`;
+        statusEl.innerHTML = `<strong>Erro de Ligação:</strong> ${error.message}<br><br><small>Nota: Se o erro persistir, verifique se o seu plano na API-Futebol permite requisições diretas a partir de aplicações frontend (CORS).</small>`;
+        console.error(error);
       }
     }
 
-    fetchCampeonatos();
+    carregarCampeonatos();
   </script>
 </body>
 </html>
