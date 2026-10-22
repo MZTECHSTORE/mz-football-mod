@@ -6,16 +6,42 @@ async function getLiveMatches() {
         const res = await fetch(url);
         
         if (!res.ok) {
-            throw new Error(`Erro na API: ${res.status} - ${res.statusText}`);
+            throw new Error(`Erro HTTP: ${res.status}`);
         }
 
         const data = await res.json();
         
-        // Retorna os dados com segurança (caso a propriedade .data exista)
-        return data.data || [];
-        
+        // Se a API retornar dados válidos, usa-os
+        if (data && data.data && data.data.length > 0) {
+            return data.data;
+        }
+
+        throw new Error("Nenhum jogo ao vivo na API neste momento.");
+
     } catch (error) {
-        console.error("Erro ao buscar jogos ao vivo:", error);
-        return []; // Retorna um array vazio para o site não quebrar
+        console.warn("Aviso da API:", error.message);
+        console.mudarParaSimulacao = true;
+
+        // DADOS DE TESTE/DEMONSTRAÇÃO (Garante que o site mostra sempre jogos para testar)
+        return [
+            {
+                id: 101,
+                league: { name: "Liga dos Campeões (Simulação)" },
+                participants: [
+                    { name: "Real Madrid" },
+                    { name: "Manchester City" }
+                ],
+                scores: { current: { home: 2, away: 1 } }
+            },
+            {
+                id: 102,
+                league: { name: "Premier League (Simulação)" },
+                participants: [
+                    { name: "Arsenal" },
+                    { name: "Liverpool" }
+                ],
+                scores: { current: { home: 0, away: 0 } }
+            }
+        ];
     }
 }
